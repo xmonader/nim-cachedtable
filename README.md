@@ -24,3 +24,7 @@ Set expiration duration for your keys in `CachedTable`
 
     os.sleep(1*1000)
 ```
+
+## Docs
+
+API is available [here](https://xmonader.github.io/nim-cachedtable/api/cachedtable.html)
