@@ -1,7 +1,6 @@
-# This is just an example to get you started. A typical binary package
-# uses this file as the main entry point of the application.
-
 import tables, times, os, options, locks
+
+type Expiration* = enum NeverExpires, DefaultExpiration
 
 type Entry[V] = object
   value*: V
@@ -10,12 +9,16 @@ type Entry[V] = object
 type CachedTable*[K,V] =  ref object
   cache*: TableRef[K, Entry[V]]
   lock*: locks.Lock
+  defaultExpiration*: Duration
 
-proc newCachedTable*[K,V](defaultTtl=10): CachedTable[K,V] =
+proc newCachedTable*[K,V](defaultExpiration = initDuration(seconds=5)): CachedTable[K,V] =
+  ## Create new CachedTable
   result =  CachedTable[K,V]()
   result.cache = newTable[K, Entry[V]]()
+  result.defaultExpiration = defaultExpiration
 
 proc setKey*[K, V](t: CachedTable[K,V], key: K, value: V, d:Duration) = 
+  ## Set ``Key`` of type ``K`` (needs to be hashable) to ``value`` of type ``V`` with duration ``d``
   let rightnow = times.getTime()
   let rightNowDur = times.initDuration(seconds=rightnow.toUnix(), nanoseconds=rightnow.nanosecond)
 
@@ -23,9 +26,23 @@ proc setKey*[K, V](t: CachedTable[K,V], key: K, value: V, d:Duration) =
   let entry = Entry[V](value:value, ttl:ttl) 
   t.cache.add(key, entry)
 
-proc setKey*[K, V](t: CachedTable[K,V], key: K, value: V, forever=true) = 
-    let entry = Entry[V](value:value, ttl:0) 
+proc setKey*[K, V](t: CachedTable[K,V], key: K, value: V, expiration:Expiration=NeverExpires) = 
+  ## Sets key with `Expiration` strategy
+  var entry: Entry[V]
+  case expiration:
+  of NeverExpires: 
+    entry = Entry[V](value:value, ttl:0)
     t.cache.add(key, entry)
+  of DefaultExpiration: 
+    t.setKey(key, value, d=t.defaultExpiration)
+
+proc setKeyWithDefaultTtl*[K, V](t: CachedTable[K,V], key: K, value: V) =
+  ## Sets a key with default Ttl duration.
+  t.setKey(key, value, DefaultExpiration)
+
+proc hasKey*[K,V](t: CachedTable[K,V], key:K): bool =
+  ## Checks if `key` exists in cache
+  result = t.cache.hasKey(key)
 
 proc isExpired(ttl: int64): bool =
   if ttl == 0:
@@ -38,6 +55,7 @@ proc isExpired(ttl: int64): bool =
     result = rightnowDur.inNanoseconds > ttl  
   
 proc get*[K,V](t: CachedTable[K,V], key: K): Option[V] = 
+  ## Get value of `key` from cache
   var entry: Entry[V]
   try:
     withLock t.lock:
@@ -55,15 +73,21 @@ proc get*[K,V](t: CachedTable[K,V], key: K): Option[V] =
     return none(V)
 
 when isMainModule:
-  var c = newCachedTable[string, string]()
+  var c = newCachedTable[string, string](initDuration(seconds=2))
   c.setKey("name", "ahmed", initDuration(seconds = 10))
   c.setKey("color", "blue", initDuration(seconds = 5))
-  c.setKey("lang", "nim", true)
+  c.setKey("akey", "a value", DefaultExpiration)
+  c.setKey("akey2", "a value2", DefaultExpiration)
+
+  c.setKey("lang", "nim", NeverExpires)
 
   for i in countup(0, 20):
+    echo "has key name? " & $c.hasKey("name")
     echo $c.cache
     echo $c.get("name")
     echo $c.get("color")
     echo $c.get("lang")
+    echo $c.get("akey")
+    echo $c.get("akey2")
 
     os.sleep(1*1000)
