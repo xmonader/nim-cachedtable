@@ -812,9 +812,13 @@ function main() {
       <li><a class="reference" href="#Expiration"
     title="Expiration = enum
   NeverExpires, DefaultExpiration"><wbr />Expiration<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#Entry"
+    title="Entry[V] = object
+  value*: V
+  ttl*: int64"><wbr />Entry<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#CachedTable"
     title="CachedTable[K; V] = ref object
-  cache*: TableRef[K, Entry[V]]
+  cache: Table[K, Entry[V]]
   lock*: locks.Lock
   defaultExpiration*: Duration"><wbr />Cached<wbr />Table<span class="attachedType"></span></a></li>
 
@@ -827,6 +831,8 @@ function main() {
     title="newCachedTable[K, V](defaultExpiration = initDuration(seconds = 5)): CachedTable[K, V]"><wbr />new<wbr />Cached<wbr />Table<span class="attachedType">CachedTable</span></a></li>
   <li><a class="reference" href="#setKey%2CCachedTable%5BK%2CV%5D%2CK%2CV%2CDuration"
     title="setKey[K, V](t: CachedTable[K, V]; key: K; value: V; d: Duration)"><wbr />set<wbr />Key<span class="attachedType">CachedTable</span></a></li>
+  <li><a class="reference" href="#getCache%2CCachedTable%5BK%2CV%5D"
+    title="getCache[K, V](t: CachedTable[K, V]): Table[K, Entry[V]]"><wbr />get<wbr />Cache<span class="attachedType">CachedTable</span></a></li>
   <li><a class="reference" href="#setKey%2CCachedTable%5BK%2CV%5D%2CK%2CV%2CExpiration"
     title="setKey[K, V](t: CachedTable[K, V]; key: K; value: V;
             expiration: Expiration = NeverExpires)"><wbr />set<wbr />Key<span class="attachedType">CachedTable</span></a></li>
@@ -858,9 +864,19 @@ function main() {
 
 
 </dd>
+<a id="Entry"></a>
+<dt><pre><a href="cachedtable.html#Entry"><span class="Identifier">Entry</span></a><span class="Other">[</span><span class="Identifier">V</span><span class="Other">]</span> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">value</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">V</span>
+  <span class="Identifier">ttl</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int64</span>
+</pre></dt>
+<dd>
+
+
+
+</dd>
 <a id="CachedTable"></a>
 <dt><pre><a href="cachedtable.html#CachedTable"><span class="Identifier">CachedTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">;</span> <span class="Identifier">V</span><span class="Other">]</span> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
-  <span class="Identifier">cache</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">TableRef</span><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">Entry</span><span class="Other">[</span><span class="Identifier">V</span><span class="Other">]</span><span class="Other">]</span>
+  <span class="Identifier">cache</span><span class="Other">:</span> <span class="Identifier">Table</span><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <a href="cachedtable.html#Entry"><span class="Identifier">Entry</span></a><span class="Other">[</span><span class="Identifier">V</span><span class="Other">]</span><span class="Other">]</span>
   <span class="Identifier">lock</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">locks</span><span class="Other">.</span><span class="Identifier">Lock</span>
   <span class="Identifier">defaultExpiration</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">Duration</span>
 </pre></dt>
@@ -887,6 +903,13 @@ Create new CachedTable
 <dd>
 
 Set <tt class="docutils literal"><span class="pre">Key</span></tt> of type <tt class="docutils literal"><span class="pre">K</span></tt> (needs to be hashable) to <tt class="docutils literal"><span class="pre">value</span></tt> of type <tt class="docutils literal"><span class="pre">V</span></tt> with duration <tt class="docutils literal"><span class="pre">d</span></tt>
+
+</dd>
+<a id="getCache,CachedTable[K,V]"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#getCache%2CCachedTable%5BK%2CV%5D"><span class="Identifier">getCache</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="cachedtable.html#CachedTable"><span class="Identifier">CachedTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Table</span><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <a href="cachedtable.html#Entry"><span class="Identifier">Entry</span></a><span class="Other">[</span><span class="Identifier">V</span><span class="Other">]</span><span class="Other">]</span></pre></dt>
+<dd>
+
+
 
 </dd>
 <a id="setKey,CachedTable[K,V],K,V,Expiration"></a>
@@ -928,7 +951,7 @@ Get value of <tt class="docutils literal"><span class="pre">key</span></tt> from
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small>Made with Nim. Generated: 2019-06-18 17:08:02 UTC</small>
+        <small>Made with Nim. Generated: 2019-06-19 19:15:05 UTC</small>
       </div>
     </div>
   </div>
