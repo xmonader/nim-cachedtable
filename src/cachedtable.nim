@@ -2,19 +2,19 @@ import tables, times, os, options, locks
 
 type Expiration* = enum NeverExpires, DefaultExpiration
 
-type Entry[V] = object
+type Entry*[V] = object
   value*: V
   ttl*: int64
 
 type CachedTable*[K,V] =  ref object
-  cache*: TableRef[K, Entry[V]]
+  cache: Table[K, Entry[V]]
   lock*: locks.Lock
   defaultExpiration*: Duration
 
 proc newCachedTable*[K,V](defaultExpiration = initDuration(seconds=5)): CachedTable[K,V] =
   ## Create new CachedTable
   result =  CachedTable[K,V]()
-  result.cache = newTable[K, Entry[V]]()
+  result.cache = initTable[K, Entry[V]]()
   result.defaultExpiration = defaultExpiration
 
 proc setKey*[K, V](t: CachedTable[K,V], key: K, value: V, d:Duration) = 
@@ -25,6 +25,9 @@ proc setKey*[K, V](t: CachedTable[K,V], key: K, value: V, d:Duration) =
   let ttl = d.inNanoseconds + rightNowDur.inNanoseconds
   let entry = Entry[V](value:value, ttl:ttl) 
   t.cache.add(key, entry)
+
+proc getCache*[K,V](t: CachedTable[K,V]): Table[K,Entry[V]] = 
+  result = t.cache
 
 proc setKey*[K, V](t: CachedTable[K,V], key: K, value: V, expiration:Expiration=NeverExpires) = 
   ## Sets key with `Expiration` strategy
@@ -72,6 +75,7 @@ proc get*[K,V](t: CachedTable[K,V], key: K): Option[V] =
     del(t.cache, key)
     return none(V)
 
+
 when isMainModule:
   var c = newCachedTable[string, string](initDuration(seconds=2))
   c.setKey("name", "ahmed", initDuration(seconds = 10))
@@ -83,7 +87,7 @@ when isMainModule:
 
   for i in countup(0, 20):
     echo "has key name? " & $c.hasKey("name")
-    echo $c.cache
+    echo $c.getCache
     echo $c.get("name")
     echo $c.get("color")
     echo $c.get("lang")
